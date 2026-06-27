@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "957444648715",
+    "project_id": "staff-sync-107fc",
+    "storage_bucket": "staff-sync-107fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:957444648715:android:461f66349cf119f787bc0e",
+        "android_client_info": {
+          "package_name": "com.example.staff_sync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBlrRePyZQY-8nDbzdfeP9vqK_1aMRqlg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

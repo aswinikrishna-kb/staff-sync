@@ -25,15 +25,22 @@ class StaffModel {
     };
   }
 
-  factory StaffModel.fromMap(
-      String id, Map<String, dynamic> map) {
+  factory StaffModel.fromMap(String id, Map<String, dynamic> map) {
     return StaffModel(
       id: id,
-      name: map["name"],
-      phone: map["phone"],
-      email: map["email"],
-      department: map["department"],
-      designation: map["designation"],
+      name: map["name"] ?? '',
+      phone: map["phone"] ?? '',
+      email: map["email"] ?? '',
+      department: map["department"] ?? '',
+      designation: map["designation"] ?? '',
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StaffModel && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

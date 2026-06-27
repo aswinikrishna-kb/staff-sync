@@ -9,6 +9,8 @@ import 'package:staff_sync/view/admin/staff_list_screen.dart';
 import 'package:staff_sync/view/auth/login_screen.dart';
 import 'package:staff_sync/viewmodel/auth_viewmodel.dart';
 
+import 'add_salary_screen.dart';
+
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
 
@@ -84,9 +86,16 @@ class AdminHomeScreen extends StatelessWidget {
               },
             ),
             DashboardCard(
-              title: 'Salary',
+              title: "Salary",
               icon: Icons.currency_rupee,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddSalaryScreen(),
+                  ),
+                );
+              },
             ),
             DashboardCard(
               title: 'Logout',

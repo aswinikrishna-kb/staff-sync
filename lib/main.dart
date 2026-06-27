@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => StaffViewModel()),
         ChangeNotifierProvider(create: (_) => AttendanceViewModel()),
         ChangeNotifierProvider(create: (_) => LeaveViewModel()),
-       // ChangeNotifierProvider(create: (_) => SalaryViewModel()),
+        ChangeNotifierProvider(create: (_) => SalaryViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

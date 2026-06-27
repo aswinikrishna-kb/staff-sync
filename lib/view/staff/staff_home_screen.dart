@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:staff_sync/core/widgets/app_scaffold.dart';
@@ -5,10 +6,12 @@ import 'package:staff_sync/core/widgets/dashboard_card.dart';
 import 'package:staff_sync/view/auth/login_screen.dart';
 import 'package:staff_sync/view/staff/attendance_screen.dart';
 import 'package:staff_sync/view/staff/my_attendance.dart';
+import 'package:staff_sync/view/staff/profile_screen.dart';
 import 'package:staff_sync/viewmodel/auth_viewmodel.dart';
 
 import 'apply_leave_screen.dart';
 import 'my_leave_screen.dart';
+import 'my_salary_screen.dart';
 
 class StaffHomeScreen extends StatelessWidget {
   const StaffHomeScreen({super.key});
@@ -37,7 +40,7 @@ class StaffHomeScreen extends StatelessWidget {
           mainAxisSpacing: 15,
           children: [
             DashboardCard(
-              title: 'Attendance',
+              title: "Attendance",
               icon: Icons.fingerprint,
               onTap: () {
                 Navigator.push(
@@ -85,19 +88,43 @@ class StaffHomeScreen extends StatelessWidget {
               },
             ),
             DashboardCard(
-              title: 'My Salary',
+              title: "My Salary",
               icon: Icons.currency_rupee,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MySalaryScreen(),
+                  ),
+                );
+              },
             ),
             DashboardCard(
-              title: 'Profile',
+              title: "Profile",
               icon: Icons.person,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
             ),
             DashboardCard(
-              title: 'Logout',
+              title: "Logout",
               icon: Icons.logout,
-              onTap: () => _logout(context),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LoginScreen(),
+                  ),
+                      (route) => false,
+                );
+              },
             ),
           ],
         ),

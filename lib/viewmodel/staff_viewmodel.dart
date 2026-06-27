@@ -38,4 +38,13 @@ class StaffViewModel extends ChangeNotifier {
   Stream<List<StaffModel>> watchStaff() {
     return _staffService.watchStaff();
   }
+
+  // NEW: Exposes registered users to the UI
+  Stream<List<StaffModel>> watchRegisteredUsers() {
+    return _staffService.watchRegisteredUsers();
+  }
+
+  getProfile(String email) {
+    return _staffService.getProfile(email);
+  }
 }

@@ -72,6 +72,7 @@ class DashboardCard extends StatelessWidget {
         ),
         child: Card(
           elevation: 0,
+          shadowColor: AppColors.peacockDark,
           color: AppColors.white.withValues(alpha: 0.12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

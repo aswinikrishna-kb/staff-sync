@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Peacock theme
   static const Color background = Color(0xFFF5F7FA);
-  static const Color cardColor = Color(0xFFFFFFFF);
+  static const Color cardColor = Color(0xFFFFFFFF);// white
 
   static const Color peacockLight = Color(0xFFB2DFDB);
   static const Color peacock = Color(0xFF4DB6AC);

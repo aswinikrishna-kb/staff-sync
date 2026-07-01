@@ -6,10 +6,9 @@ import 'package:staff_sync/view/admin/add_staff_screen.dart';
 import 'package:staff_sync/view/admin/attendance_list_screen.dart';
 import 'package:staff_sync/view/admin/leave_list_screen.dart';
 import 'package:staff_sync/view/admin/staff_list_screen.dart';
+import 'package:staff_sync/view/admin/salary_list_screen.dart';
 import 'package:staff_sync/view/auth/login_screen.dart';
 import 'package:staff_sync/viewmodel/auth_viewmodel.dart';
-
-import 'add_salary_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -92,7 +91,7 @@ class AdminHomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AddSalaryScreen(),
+                    builder: (_) => const SalaryListScreen(),
                   ),
                 );
               },

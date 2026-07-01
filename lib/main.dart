@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.theme,
         home: const LoginScreen(),
+
       ),
     );
   }

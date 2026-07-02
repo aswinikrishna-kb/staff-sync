@@ -30,7 +30,7 @@ class DashboardCard extends StatelessWidget {
         color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(16),
         elevation: 3,
-        shadowColor: AppColors.peacockDark.withOpacity(0.15),
+        shadowColor: AppColors.peacockDark..withValues(alpha: 0.15),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),

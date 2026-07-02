@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/widgets/app_scaffold.dart';
 import '../../model/salary_model.dart';
 import '../../viewmodel/salary_viewmodel.dart';
 import 'add_salary_screen.dart';
@@ -13,102 +15,118 @@ class SalaryListScreen extends StatefulWidget {
 }
 
 class _SalaryListScreenState extends State<SalaryListScreen> {
-  String searchName = "";
-  String filterMonth = "All";
-  String filterYear = "All";
+  String _searchQuery = "";
+  String? _selectedMonth;
+  String? _selectedYear;
+  String? _displayDate;
 
   final List<String> months = [
-    "All", "January", "February", "March", "April", "May", "June",
+    "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
-  final List<String> years = [
-    "All",
-    ...List.generate(5, (index) => (DateTime.now().year - 2 + index).toString())
-  ];
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.peacockDark,
+              onPrimary: Colors.white,
+              onSurface: AppColors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedMonth = months[picked.month - 1];
+        _selectedYear = picked.year.toString();
+        _displayDate = "${_selectedMonth} ${_selectedYear}";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final salaryVM = Provider.of<SalaryViewModel>(context);
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text("Salary Management"),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      title: "Salary Management",
       body: Column(
         children: [
-          // Filter Section
+          // Themed Filter Header
           Container(
-            padding: const EdgeInsets.all(15),
-            decoration: const BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              //color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.peacockLight,
             ),
             child: Column(
               children: [
-                // Search bar
+                // Search Bar
                 TextField(
-                  onChanged: (value) => setState(() => searchName = value.toLowerCase()),
+                  onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
                   decoration: InputDecoration(
                     hintText: "Search staff name...",
-                    prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
-                    fillColor: Colors.white,
+                    prefixIcon: const Icon(Icons.search, color: AppColors.peacockDark),
                     filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
-                // Dropdown Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: filterYear,
-                            isExpanded: true,
-                            hint: const Text("Year"),
-                            items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
-                            onChanged: (val) => setState(() => filterYear = val!),
+                const SizedBox(height: 12),
+                // Date Picker Bar
+                InkWell(
+                  onTap: () => _pickDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month, color: AppColors.peacockDark, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _displayDate ?? "Filter by Month/Year",
+                            style: TextStyle(
+                              color: _displayDate == null ? Colors.grey[600] : AppColors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: filterMonth,
-                            isExpanded: true,
-                            hint: const Text("Month"),
-                            items: months.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                            onChanged: (val) => setState(() => filterMonth = val!),
+                        if (_displayDate != null)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedMonth = null;
+                                _selectedYear = null;
+                                _displayDate = null;
+                              });
+                            },
+                            child: const Icon(Icons.close, color: Colors.redAccent, size: 20),
                           ),
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -117,29 +135,35 @@ class _SalaryListScreenState extends State<SalaryListScreen> {
           // List section
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: salaryVM.getSalary(year: filterYear, month: filterMonth),
+              stream: salaryVM.getSalary(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No records found"));
+                  return const Center(child: Text("No records found", style: TextStyle(color: Colors.white)));
                 }
 
-                // Filter by name locally
                 var docs = snapshot.data!.docs.where((doc) {
                   var data = doc.data() as Map<String, dynamic>;
                   String name = (data['staffName'] ?? "").toString().toLowerCase();
-                  return name.contains(searchName);
+                  String month = (data['month'] ?? "");
+                  String year = (data['year'] ?? "");
+                  
+                  bool matchesName = name.contains(_searchQuery);
+                  bool matchesMonth = _selectedMonth == null || month == _selectedMonth;
+                  bool matchesYear = _selectedYear == null || year == _selectedYear;
+                  
+                  return matchesName && matchesMonth && matchesYear;
                 }).toList();
 
                 if (docs.isEmpty) {
-                  return const Center(child: Text("No matching records found"));
+                  return const Center(child: Text("No matching records found", style: TextStyle(color: Colors.white)));
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     var doc = docs[index];
@@ -148,24 +172,37 @@ class _SalaryListScreenState extends State<SalaryListScreen> {
 
                     return Card(
                       elevation: 2,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blueAccent.withOpacity(0.1),
-                          child: const Icon(Icons.person, color: Colors.blueAccent),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.peacockLight.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.payments_outlined, color: AppColors.peacockDark),
                         ),
-                        title: Text(salary.staffName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("${salary.month} ${salary.year} | Net: ₹${salary.netSalary}"),
+                        title: Text(
+                          salary.staffName, 
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black),
+                        ),
+                        subtitle: Text(
+                          "${salary.month} ${salary.year} • Net: ₹${salary.netSalary}",
+                          style: const TextStyle(color: AppColors.black54),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit_note, color: Colors.blue),
                               onPressed: () => _editSalary(doc.id, salary),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                               onPressed: () => _confirmDelete(doc.id),
                             ),
                           ],
@@ -179,16 +216,17 @@ class _SalaryListScreenState extends State<SalaryListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddSalaryScreen()),
-          );
-        },
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddSalaryScreen()),
+            );
+          },
+        ),
+      ],
     );
   }
 

@@ -27,7 +27,6 @@ class AdminHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Native way to get yyyy-MM-dd without intl package
     String today = DateTime.now().toIso8601String().split('T')[0];
 
     return AppScaffold(
@@ -37,7 +36,7 @@ class AdminHomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Statistics Section - Synchronized Peacock Theme but distinct from buttons
+            // Statistics Section - Styled as "Standard Filter Bar"
             Row(
               children: [
                 _buildStatCard(
@@ -45,9 +44,9 @@ class AdminHomeScreen extends StatelessWidget {
                   title: 'Total Staff',
                   stream: FirebaseFirestore.instance.collection('staffs').snapshots(),
                   icon: Icons.people_outline,
-                  iconColor: AppColors.peacockDark,
+                  color: Colors.blue.shade700,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 _buildStatCard(
                   context,
                   title: 'Present Today',
@@ -56,12 +55,12 @@ class AdminHomeScreen extends StatelessWidget {
                       .where('date', isEqualTo: today)
                       .where('status', isEqualTo: 'Present')
                       .snapshots(),
-                  icon: Icons.assignment_turned_in_outlined,
-                  iconColor: AppColors.peacockDark,
+                  icon: Icons.check_circle_outline,
+                  color: Colors.green.shade700,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 _buildStatCard(
@@ -71,31 +70,30 @@ class AdminHomeScreen extends StatelessWidget {
                       .collection('leave')
                       .where('status', isEqualTo: 'Pending')
                       .snapshots(),
-                  icon: Icons.history_edu_outlined,
-                  iconColor: AppColors.peacockDark,
+                  icon: Icons.pending_actions,
+                  color: Colors.orange.shade800,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 _buildStatCard(
                   context,
                   title: 'Salary Records',
                   stream: FirebaseFirestore.instance.collection('salary').snapshots(),
-                  icon: Icons.account_balance_wallet_outlined,
-                  iconColor: AppColors.peacockDark,
+                  icon: Icons.payments_outlined,
+                  color: Colors.purple.shade700,
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 25),
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 15),
               child: Text(
-                "Quick Actions",
+                "Management",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.peacockDark,
                     ),
               ),
             ),
-            // Menu Grid - Uses the primary gradient buttons
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -171,58 +169,57 @@ class AdminHomeScreen extends StatelessWidget {
     required String title,
     required Stream<QuerySnapshot> stream,
     required IconData icon,
-    required Color iconColor,
+    required Color color,
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.peacockLight,
-          borderRadius: BorderRadius.circular(08),
-          // Subtle border and shadow to match the peacock theme but remain clean
-          border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.4), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.peacockDark.withValues(alpha: 0.08),
-              spreadRadius: 0,
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.peacockDark), // Same as Filter Bar
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.peacock,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: iconColor, size: 26),
+              child: Icon(icon, color: AppColors.peacockDark, size: 20),
             ),
-            const SizedBox(height: 16),
-            StreamBuilder<QuerySnapshot>(
-              stream: stream,
-              builder: (context, snapshot) {
-                String count = snapshot.hasData ? snapshot.data!.docs.length.toString() : '0';
-                return Text(
-                  count,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
-                      ),
-                );
-              },
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.black54,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StreamBuilder<QuerySnapshot>(
+                    stream: stream,
+                    builder: (context, snapshot) {
+                      String count = snapshot.hasData ? snapshot.data!.docs.length.toString() : '0';
+                      return Text(
+                        count,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.peacockDark,
+                        ),
+                      );
+                    },
                   ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

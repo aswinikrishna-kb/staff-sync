@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,13 +7,45 @@ import '../../core/widgets/custom_button.dart';
 import '../../core/widgets/custom_textfield.dart';
 import '../../viewmodel/leave_viewmodel.dart';
 
-class ApplyLeaveScreen extends StatelessWidget {
-  ApplyLeaveScreen({super.key});
+class ApplyLeaveScreen extends StatefulWidget {
+  const ApplyLeaveScreen({super.key});
 
+  @override
+  State<ApplyLeaveScreen> createState() => _ApplyLeaveScreenState();
+}
+
+class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   final staffNameController = TextEditingController();
   final reasonController = TextEditingController();
   final fromDateController = TextEditingController();
   final toDateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          staffNameController.text = doc.data()?['username'] ?? "";
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    staffNameController.dispose();
+    reasonController.dispose();
+    fromDateController.dispose();
+    toDateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +63,7 @@ class ApplyLeaveScreen extends StatelessWidget {
               controller: staffNameController,
               hint: "Staff Name",
               icon: Icons.person,
+              enabled: false, // Locked to the registered username
             ),
             const SizedBox(height: 15),
             CustomTextField(
@@ -58,8 +92,17 @@ class ApplyLeaveScreen extends StatelessWidget {
                       final user = FirebaseAuth.instance.currentUser;
                       if (user == null) return;
 
+                      if (reasonController.text.isEmpty || 
+                          fromDateController.text.isEmpty || 
+                          toDateController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please fill all fields")),
+                        );
+                        return;
+                      }
+
                       await leaveVM.applyLeave(
-                        staffId: user.uid,
+                        staffId: user.email ?? user.uid,
                         staffName: staffNameController.text.trim(),
                         reason: reasonController.text.trim(),
                         fromDate: fromDateController.text.trim(),

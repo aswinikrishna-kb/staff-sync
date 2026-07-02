@@ -56,14 +56,19 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
     final leaveVM = Provider.of<LeaveViewModel>(context);
 
     return AppScaffold(
-      title: "Leave Requests",
+      title: "Leave Management",
       body: Column(
         children: [
-          // Themed Filter Header (Same as Salary/Attendance)
+          // Standard Themed Filter Header (Same as Salary/Attendance)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.peacockLight,
+              color: Colors.white.withValues(alpha: 0.9),
+              // borderRadius: const BorderRadius.only(
+              //   bottomLeft: Radius.circular(20),
+              //   bottomRight: Radius.circular(20),
+              // ),
+              border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.3)),
             ),
             child: Column(
               children: [
@@ -78,11 +83,11 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                      borderSide: BorderSide(color: AppColors.peacockLight.withOpacity(0.5)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                      borderSide: BorderSide(color: AppColors.peacockLight.withOpacity(0.5)),
                     ),
                   ),
                 ),
@@ -94,8 +99,8 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.peacockLight.withOpacity(0.5)),
                     ),
                     child: Row(
                       children: [
@@ -119,7 +124,10 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                                 _displayDate = null;
                               });
                             },
-                            child: const Icon(Icons.close, color: Colors.redAccent, size: 20),
+                            child: const Padding(
+                              padding: EdgeInsets.only(right: 8.0),
+                              child: Icon(Icons.close, color: AppColors.peacockDark, size: 20),
+                            ),
                           ),
                         const Icon(Icons.arrow_drop_down, color: AppColors.peacockDark),
                       ],
@@ -150,11 +158,8 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                   
                   bool matchesName = name.contains(_searchQuery);
                   
-                  // Filter by month/year if selected
                   bool matchesDate = true;
                   if (_selectedMonth != null && _selectedYear != null) {
-                    // This assumes fromDate contains month name or we check overlap. 
-                    // For simplicity, we check if the string contains the year or month name.
                     matchesDate = fromDate.contains(_selectedYear!) || 
                                   fromDate.contains(_selectedMonth!.substring(0,3));
                   }
@@ -177,7 +182,9 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                     return Card(
                       elevation: 2,
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -191,8 +198,8 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                                     leave["staffName"] ?? "Unknown",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: AppColors.peacockDark,
+                                      fontSize: 17,
+                                      color: AppColors.black,
                                     ),
                                   ),
                                 ),
@@ -201,61 +208,97 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                                   decoration: BoxDecoration(
                                     color: _getStatusColor(status).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: _getStatusColor(status)),
+                                    border: Border.all(color: _getStatusColor(status).withOpacity(0.5)),
                                   ),
                                   child: Text(
                                     status,
                                     style: TextStyle(
                                       color: _getStatusColor(status),
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            Text("Reason: ${leave["reason"]}", style: const TextStyle(color: AppColors.black54)),
-                            const SizedBox(height: 4),
-                            Text("Duration: ${leave["fromDate"]} to ${leave["toDate"]}", 
-                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
-                            const Divider(height: 20),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Icon(Icons.info_outline, size: 16, color: AppColors.peacockDark),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Reason: ${leave["reason"]}", 
+                                    style: const TextStyle(color: AppColors.black54, fontSize: 14)
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.date_range, size: 16, color: AppColors.peacockDark),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Duration: ${leave["fromDate"]} to ${leave["toDate"]}", 
+                                  style: const TextStyle(color: AppColors.black54, fontSize: 13, fontWeight: FontWeight.w500)
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 24),
                             if (status == "Pending")
                               Row(
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton(
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.check, size: 18),
+                                      label: const Text("Approve"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
                                         foregroundColor: Colors.white,
+                                        elevation: 0,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                       onPressed: () async {
                                         await leaveVM.updateStatus(doc.id, "Approved");
                                       },
-                                      child: const Text("Approve"),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: ElevatedButton(
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.close, size: 18),
+                                      label: const Text("Reject"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.redAccent,
                                         foregroundColor: Colors.white,
+                                        elevation: 0,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                       onPressed: () async {
                                         await leaveVM.updateStatus(doc.id, "Rejected");
                                       },
-                                      child: const Text("Reject"),
                                     ),
                                   ),
                                 ],
                               )
                             else
-                              const Text(
-                                "Action has been taken",
-                                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "Decision: $status",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic, 
+                                    color: Colors.grey,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                           ],
                         ),

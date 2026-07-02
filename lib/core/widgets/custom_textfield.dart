@@ -7,6 +7,7 @@ class CustomTextField extends StatelessWidget {
   final IconData icon;
   final bool obscureText;
   final bool forAuth;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -15,6 +16,7 @@ class CustomTextField extends StatelessWidget {
     required this.icon,
     this.obscureText = false,
     this.forAuth = false,
+    this.enabled = true,
   });
 
   @override
@@ -38,6 +40,7 @@ class CustomTextField extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         obscureText: obscureText,
+        enabled: enabled,
         style: TextStyle(color: textColor, fontSize: 16),
         cursorColor: textColor,
         decoration: InputDecoration(

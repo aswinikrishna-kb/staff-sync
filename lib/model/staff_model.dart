@@ -5,6 +5,12 @@ class StaffModel {
   String email;
   String department;
   String designation;
+  String joiningDate;
+  String address;
+  String employeeId;
+  String adminUid;   // The Admin who added this staff
+  String adminEmail; // Used as the Referral ID for staff signup
+  String companyName;
 
   StaffModel({
     required this.id,
@@ -13,6 +19,12 @@ class StaffModel {
     required this.email,
     required this.department,
     required this.designation,
+    required this.joiningDate,
+    required this.adminUid,
+    required this.adminEmail,
+    required this.companyName,
+    this.address = '',
+    this.employeeId = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +34,12 @@ class StaffModel {
       "email": email,
       "department": department,
       "designation": designation,
+      "joiningDate": joiningDate,
+      "address": address,
+      "employeeId": employeeId,
+      "adminUid": adminUid,
+      "adminEmail": adminEmail,
+      "companyName": companyName,
     };
   }
 
@@ -33,6 +51,12 @@ class StaffModel {
       email: map["email"] ?? '',
       department: map["department"] ?? '',
       designation: map["designation"] ?? '',
+      joiningDate: map["joiningDate"] ?? '',
+      address: map["address"] ?? '',
+      employeeId: map["employeeId"] ?? '',
+      adminUid: map["adminUid"] ?? '',
+      adminEmail: map["adminEmail"] ?? '',
+      companyName: map["companyName"] ?? '',
     );
   }
 

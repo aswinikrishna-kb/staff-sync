@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:staff_sync/core/theme/app_theme.dart';
 import 'package:staff_sync/firebase_options.dart';
-import 'package:staff_sync/view/auth/login_screen.dart';
+import 'package:staff_sync/view/splash/splash_screen.dart';
 import 'package:staff_sync/viewmodel/attendance_viewmodel.dart';
 import 'package:staff_sync/viewmodel/auth_viewmodel.dart';
+import 'package:staff_sync/viewmodel/invoice_viewmodel.dart';
 import 'package:staff_sync/viewmodel/leave_viewmodel.dart';
 import 'package:staff_sync/viewmodel/staff_viewmodel.dart';
 import 'package:staff_sync/viewmodel/salary_viewmodel.dart';
@@ -32,12 +33,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AttendanceViewModel()),
         ChangeNotifierProvider(create: (_) => LeaveViewModel()),
         ChangeNotifierProvider(create: (_) => SalaryViewModel()),
+        ChangeNotifierProvider(create: (_) => InvoiceViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.theme,
-        home: const LoginScreen(),
-
+        home: const SplashScreen(),
       ),
     );
   }

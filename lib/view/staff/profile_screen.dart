@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:staff_sync/core/constants/app_colors.dart';
+import 'package:staff_sync/core/widgets/app_scaffold.dart';
 
 import '../../viewmodel/staff_viewmodel.dart';
 
@@ -10,90 +12,151 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final staffVM = Provider.of<StaffViewModel>(context);
+    
+    // Ensure email is lowercased to match the database records
+    final user = FirebaseAuth.instance.currentUser;
+    final String email = (user?.email ?? "").toLowerCase();
 
-    final staffVM =
-    Provider.of<StaffViewModel>(context);
+    return AppScaffold(
+      title: "My Profile",
+      body: email.isEmpty 
+        ? const Center(child: Text("User session not found", style: TextStyle(color: Colors.white)))
+        : StreamBuilder<QuerySnapshot>(
+            stream: staffVM.getProfile(email),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-    String email =
-    FirebaseAuth.instance.currentUser!.email!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Profile"),
-      ),
-
-      body: StreamBuilder<QuerySnapshot>(
-        stream: staffVM.getProfile(email),
-
-        builder: (context, snapshot) {
-
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (!snapshot.hasData ||
-              snapshot.data!.docs.isEmpty) {
-
-            return const Center(
-              child: Text("Profile Not Found"),
-            );
-          }
-
-          var data = snapshot.data!.docs.first;
-
-          return Padding(
-            padding: const EdgeInsets.all(20),
-
-            child: Column(
-              children: [
-
-                const CircleAvatar(
-                  radius: 50,
-                  child: Icon(
-                    Icons.person,
-                    size: 50,
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.person_off, size: 80, color: Colors.white70),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Profile details not found.",
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Text(
+                          "Please contact Admin to add your profile for: $email",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                );
+              }
 
-                const SizedBox(height: 20),
+              var data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
 
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text("Name"),
-                  subtitle: Text(data["name"]),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Header Avatar Section
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.white24,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 80,
+                          color: AppColors.peacockDark,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      data["name"] ?? "N/A",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      data["designation"] ?? "N/A",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    
+                    // Details Card
+                    _buildProfileCard([
+                      _buildInfoTile(Icons.badge_outlined, "Employee ID", data["employeeId"]),
+                      _buildInfoTile(Icons.email_outlined, "Official Email", data["email"]),
+                      _buildInfoTile(Icons.phone_android_outlined, "Phone Number", data["phone"]),
+                      _buildInfoTile(Icons.business_outlined, "Department", data["department"]),
+                      _buildInfoTile(Icons.calendar_month_outlined, "Joining Date", data["joiningDate"]),
+                      _buildInfoTile(Icons.location_on_outlined, "Current Address", data["address"]),
+                    ]),
+                    const SizedBox(height: 20),
+                  ],
                 ),
+              );
+            },
+          ),
+    );
+  }
 
-                ListTile(
-                  leading: const Icon(Icons.email),
-                  title: const Text("Email"),
-                  subtitle: Text(data["email"]),
-                ),
+  Widget _buildProfileCard(List<Widget> children) {
+    return Card(
+      elevation: 8,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: Column(
+          children: children,
+        ),
+      ),
+    );
+  }
 
-                ListTile(
-                  leading: const Icon(Icons.phone),
-                  title: const Text("Phone"),
-                  subtitle: Text(data["phone"]),
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.business),
-                  title: const Text("Department"),
-                  subtitle: Text(data["department"]),
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.work),
-                  title: const Text("Designation"),
-                  subtitle: Text(data["designation"]),
-                ),
-              ],
-            ),
-          );
-        },
+  Widget _buildInfoTile(IconData icon, String label, dynamic value) {
+    final String displayValue = (value == null || value.toString().isEmpty) ? "Not Provided" : value.toString();
+    
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.peacockLight.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: AppColors.peacockDark, size: 24),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+      subtitle: Text(
+        displayValue,
+        style: const TextStyle(
+          fontSize: 16,
+          color: Colors.black87,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../model/staff_model.dart';
@@ -14,18 +15,31 @@ class StaffViewModel extends ChangeNotifier {
     required String email,
     required String department,
     required String designation,
+    required String joiningDate,
+    required String companyName, // Added
+    String address = '',
+    String employeeId = '',
   }) async {
     try {
       isLoading = true;
       notifyListeners();
 
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) throw Exception("Admin not logged in");
+
       final staff = StaffModel(
         id: '',
         name: name,
         phone: phone,
-        email: email,
+        email: email.toLowerCase(),
         department: department,
         designation: designation,
+        joiningDate: joiningDate,
+        address: address,
+        employeeId: employeeId,
+        adminUid: currentUser.uid,          // Current Admin's UID
+        adminEmail: currentUser.email!,     // Current Admin's Email (Referral ID)
+        companyName: companyName,           // Admin's Company Name
       );
 
       await _staffService.addStaff(staff);
@@ -36,7 +50,11 @@ class StaffViewModel extends ChangeNotifier {
   }
 
   Stream<List<StaffModel>> watchStaff() {
-    return _staffService.watchStaff();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return Stream.value([]);
+    
+    // Only watch staff added by this specific Admin
+    return _staffService.watchStaffByAdmin(currentUser.uid);
   }
 
   // NEW: Exposes registered users to the UI

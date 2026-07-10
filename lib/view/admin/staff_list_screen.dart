@@ -80,20 +80,18 @@ class _StaffListScreenState extends State<StaffListScreen> {
       title: 'Staff Management',
       body: Column(
         children: [
-          // Standard Themed Filter Header
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: Colors.white.withOpacity(0.9),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
               ),
-              border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.peacockLight.withOpacity(0.3)),
             ),
             child: Column(
               children: [
-                // Search Bar
                 TextField(
                   controller: _searchController,
                   onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
@@ -101,28 +99,23 @@ class _StaffListScreenState extends State<StaffListScreen> {
                     hintText: "Search staff name or email...",
                     prefixIcon: const Icon(Icons.search, color: AppColors.peacockDark),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Colors.grey[50],
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Date Picker Bar
                 InkWell(
                   onTap: () => _pickDate(context),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.5)),
+                      border: Border.all(color: Colors.grey[200]!),
                     ),
                     child: Row(
                       children: [
@@ -145,8 +138,6 @@ class _StaffListScreenState extends State<StaffListScreen> {
               ],
             ),
           ),
-
-          // Staff List
           Expanded(
             child: StreamBuilder<List<StaffModel>>(
               stream: staffVM.watchStaff(),
@@ -175,14 +166,12 @@ class _StaffListScreenState extends State<StaffListScreen> {
                             final staff = staffList[index];
                             final email = staff.email.toLowerCase();
 
-                            // Calculate Attendance for selected month
                             final attendanceCount = (attendanceSnapshot.data ?? []).where((a) {
                               return a.staffId.toLowerCase() == email && 
                                      a.date.contains("${_selectedYear}-${_getMonthNumber(_selectedMonth!)}") &&
                                      a.status == "Present";
                             }).length;
 
-                            // Find Salary for selected month
                             String salaryInfo = "Salary: Not Added";
                             if (salarySnapshot.hasData) {
                               final salaryDoc = salarySnapshot.data!.docs.where((doc) {
@@ -205,12 +194,31 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.peacockLight.withValues(alpha: 0.2),
+                                    color: AppColors.peacockLight.withOpacity(0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.person, color: AppColors.peacockDark),
                                 ),
-                                title: Text(staff.name, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black)),
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(staff.name, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black)),
+                                    ),
+                                    if (staff.employeeId.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.peacockDark.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          staff.employeeId,
+                                          style: const TextStyle(fontSize: 10, color: AppColors.peacockDark, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -221,8 +229,8 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("📅 Presents: $attendanceCount", style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.peacockDark)),
-                                        Text("💰 $salaryInfo", style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.green)),
+                                        Text("📅 Presents: $attendanceCount", style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.peacockDark, fontSize: 12)),
+                                        Text("💰 $salaryInfo", style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.green, fontSize: 12)),
                                       ],
                                     ),
                                   ],

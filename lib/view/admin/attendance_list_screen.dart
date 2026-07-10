@@ -62,10 +62,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.peacockLight,
+              color: AppColors.cardColor,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.peacockDark.withValues(alpha: 0.05),
+                  color: AppColors.peacockDark.withOpacity(0.05),
                   blurRadius: 10,
                 )
               ],
@@ -176,7 +176,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                       subtitles: [
                         '📅 Date: ${attendance.date}',
                         '✅ Status: ${attendance.status}',
-                        if (attendance.punchInTime.isNotEmpty) '⏰ Time: ${attendance.punchInTime}',
+                        if (attendance.punchInTime.isNotEmpty) '🕒 Punch In: ${attendance.punchInTime}',
+                        if (attendance.punchOutTime.isNotEmpty) '🕒 Punch Out: ${attendance.punchOutTime}',
                       ],
                     );
                   },

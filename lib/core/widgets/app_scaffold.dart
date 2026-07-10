@@ -9,6 +9,7 @@ class AppScaffold extends StatelessWidget {
   final bool showAppBar;
   final List<Widget>? actions;
   final AppScaffoldStyle style;
+  final Widget? drawer;
 
   const AppScaffold({
     super.key,
@@ -17,6 +18,7 @@ class AppScaffold extends StatelessWidget {
     this.showAppBar = true,
     this.actions,
     this.style = AppScaffoldStyle.gradient,
+    this.drawer,
   });
 
   @override
@@ -26,6 +28,7 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: isLight ? AppColors.background : AppColors.peacockDark,
       extendBodyBehindAppBar: false,
+      drawer: drawer,
       appBar: showAppBar && title != null
           ? AppBar(
               title: Text(

@@ -56,19 +56,20 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
     final leaveVM = Provider.of<LeaveViewModel>(context);
 
     return AppScaffold(
-      title: "Leave Management",
+      title: "Leave Requests",
       body: Column(
         children: [
-          // Standard Themed Filter Header (Same as Salary/Attendance)
+          // Standard Themed Filter Header (Same as Attendance/Salary)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
-              // borderRadius: const BorderRadius.only(
-              //   bottomLeft: Radius.circular(20),
-              //   bottomRight: Radius.circular(20),
-              // ),
-              border: Border.all(color: AppColors.peacockLight.withValues(alpha: 0.3)),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.peacockDark.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                )
+              ],
             ),
             child: Column(
               children: [
@@ -79,16 +80,12 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                     hintText: "Search staff name...",
                     prefixIcon: const Icon(Icons.search, color: AppColors.peacockDark),
                     filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    fillColor: Colors.grey[50],
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withOpacity(0.5)),
+                      borderSide: BorderSide.none,
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.peacockLight.withOpacity(0.5)),
-                    ),
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -98,9 +95,9 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.peacockLight.withOpacity(0.5)),
+                      border: Border.all(color: Colors.grey[200]!),
                     ),
                     child: Row(
                       children: [
@@ -126,7 +123,7 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                             },
                             child: const Padding(
                               padding: EdgeInsets.only(right: 8.0),
-                              child: Icon(Icons.close, color: AppColors.peacockDark, size: 20),
+                              child: Icon(Icons.close, color: Colors.redAccent, size: 20),
                             ),
                           ),
                         const Icon(Icons.arrow_drop_down, color: AppColors.peacockDark),
@@ -180,10 +177,11 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                     String status = leave["status"] ?? "Pending";
 
                     return Card(
-                      elevation: 2,
+                      elevation: 0,
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
+                        side: BorderSide(color: Colors.grey[200]!),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -193,12 +191,21 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.peacockDark.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.description_outlined, color: AppColors.peacockDark, size: 20),
+                                ),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     leave["staffName"] ?? "Unknown",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 17,
+                                      fontSize: 16,
                                       color: AppColors.black,
                                     ),
                                   ),
@@ -208,7 +215,6 @@ class _LeaveListScreenState extends State<LeaveListScreen> {
                                   decoration: BoxDecoration(
                                     color: _getStatusColor(status).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: _getStatusColor(status).withOpacity(0.5)),
                                   ),
                                   child: Text(
                                     status,

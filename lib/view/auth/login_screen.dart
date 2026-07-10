@@ -18,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -29,6 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final authVM = context.read<AuthViewModel>();
 
     try {
@@ -53,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(e.toString().replaceAll('Exception:', '').trim())),
       );
     }
   }
@@ -74,94 +77,107 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Container(
                 padding: const EdgeInsets.all(25),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.12),
+                  color: AppColors.white.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(color: AppColors.white24),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 90,
-                      width: 90,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(25),
-                        child: Image.asset(AppAssets.logo, fit: BoxFit.cover),
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    const Text(
-                      AppStrings.welcomeBack,
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      AppStrings.loginToContinue,
-                      style: TextStyle(
-                        color: AppColors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 35),
-                    CustomTextField(
-                      controller: _emailController,
-                      hint: AppStrings.email,
-                      icon: Icons.email,
-                      forAuth: true,
-                    ),
-                    const SizedBox(height: 20),
-                    CustomTextField(
-                      controller: _passwordController,
-                      hint: AppStrings.password,
-                      icon: Icons.lock,
-                      obscureText: true,
-                      forAuth: true,
-                    ),
-                    const SizedBox(height: 30),
-                    authVM.isLoading
-                        ? const CircularProgressIndicator(
-                            color: AppColors.white,
-                          )
-                        : CustomButton(
-                            title: AppStrings.login,
-                            onTap: _handleLogin,
-                          ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          AppStrings.dontHaveAccount,
-                          style: TextStyle(color: AppColors.white70),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        height: 90,
+                        width: 90,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(25),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SignupScreen(),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Image.asset(AppAssets.logo, fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(height: 25),
+                      const Text(
+                        AppStrings.welcomeBack,
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        AppStrings.loginToContinue,
+                        style: TextStyle(
+                          color: AppColors.white70,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 35),
+                      CustomTextField(
+                        controller: _emailController,
+                        hint: AppStrings.email,
+                        icon: Icons.email,
+                        forAuth: true,
+                        obscureText: false, // Explicitly visible
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Please enter your email';
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Please enter a valid email';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextField(
+                        controller: _passwordController,
+                        hint: AppStrings.password,
+                        icon: Icons.lock,
+                        obscureText: true, // Hidden with eye toggle
+                        forAuth: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Please enter your password';
+                          if (value.length < 6) return 'Password must be at least 6 characters';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      authVM.isLoading
+                          ? const CircularProgressIndicator(color: AppColors.white)
+                          : CustomButton(
+                              title: AppStrings.login,
+                              onTap: _handleLogin,
+                            ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            AppStrings.dontHaveAccount,
+                            style: TextStyle(color: AppColors.white70),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SignupScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              AppStrings.signUp,
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                          child: const Text(
-                            AppStrings.signUp,
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

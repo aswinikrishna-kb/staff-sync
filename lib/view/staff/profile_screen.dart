@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:staff_sync/core/constants/app_colors.dart';
 import 'package:staff_sync/core/widgets/app_scaffold.dart';
-
+import 'package:staff_sync/viewmodel/theme_viewmodel.dart';
 import '../../viewmodel/staff_viewmodel.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,8 +13,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final staffVM = Provider.of<StaffViewModel>(context);
+    final themeVM = context.watch<ThemeViewModel>();
     
-    // Ensure email is lowercased to match the database records
     final user = FirebaseAuth.instance.currentUser;
     final String email = (user?.email ?? "").toLowerCase();
 
@@ -70,11 +70,11 @@ class ProfileScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const CircleAvatar(
-                        radius: 60,
+                        radius: 50,
                         backgroundColor: AppColors.white,
                         child: Icon(
                           Icons.person,
-                          size: 80,
+                          size: 60,
                           color: AppColors.peacockDark,
                         ),
                       ),
@@ -88,14 +88,24 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    Text(
-                      data["designation"] ?? "N/A",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
+                    const SizedBox(height: 20),
+
+                    // --- THEME TOGGLE SECTION ---
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      child: SwitchListTile(
+                        secondary: Icon(
+                          themeVM.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                          color: AppColors.peacockDark,
+                        ),
+                        title: const Text("Dark Mode", style: TextStyle(fontWeight: FontWeight.bold)),
+                        value: themeVM.isDarkMode,
+                        onChanged: (val) => themeVM.toggleTheme(val),
                       ),
                     ),
-                    const SizedBox(height: 30),
+
+                    const SizedBox(height: 20),
                     
                     // Details Card
                     _buildProfileCard([
@@ -104,7 +114,6 @@ class ProfileScreen extends StatelessWidget {
                       _buildInfoTile(Icons.phone_android_outlined, "Phone Number", data["phone"]),
                       _buildInfoTile(Icons.business_outlined, "Department", data["department"]),
                       _buildInfoTile(Icons.calendar_month_outlined, "Joining Date", data["joiningDate"]),
-                      _buildInfoTile(Icons.location_on_outlined, "Current Address", data["address"]),
                     ]),
                     const SizedBox(height: 20),
                   ],
@@ -121,7 +130,7 @@ class ProfileScreen extends StatelessWidget {
       shadowColor: Colors.black26,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(
           children: children,
         ),
@@ -134,29 +143,20 @@ class ProfileScreen extends StatelessWidget {
     
     return ListTile(
       leading: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.peacockLight.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.peacockLight.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: AppColors.peacockDark, size: 24),
+        child: Icon(icon, color: AppColors.peacockDark, size: 20),
       ),
       title: Text(
         label,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
+        style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
         displayValue,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.black87,
-          fontWeight: FontWeight.w700,
-        ),
+        style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold),
       ),
     );
   }

@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:staff_sync/core/widgets/app_scaffold.dart';
 import 'package:staff_sync/core/widgets/custom_button.dart';
+import 'package:staff_sync/core/widgets/custom_textfield.dart';
 import 'package:staff_sync/viewmodel/attendance_viewmodel.dart';
+import 'package:staff_sync/viewmodel/auth_viewmodel.dart';
+import 'package:staff_sync/viewmodel/work_viewmodel.dart';
 import 'package:staff_sync/model/attendance_model.dart';
+import 'package:staff_sync/model/work_update_model.dart';
+import 'package:staff_sync/core/constants/app_colors.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
   const MarkAttendanceScreen({super.key});
@@ -17,11 +22,18 @@ class MarkAttendanceScreen extends StatefulWidget {
 class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   String _username = "Loading...";
   bool _isInitialized = false;
+  final _workDescController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
+  }
+
+  @override
+  void dispose() {
+    _workDescController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserInfo() async {
@@ -30,19 +42,92 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (doc.exists) {
         setState(() {
-          _username = doc.data()?['username'] ?? "Unknown Staff";
+          _username = doc.data()?['username'] ?? "Staff Member";
           _isInitialized = true;
         });
       }
     }
   }
 
+  // FIXED: Renamed and placed correctly to fix the 'undefined_method' error
+  Future<void> _updateStatus(WorkUpdateModel work, String newStatus) async {
+    await context.read<WorkViewModel>().submitWorkUpdate(
+      id: work.id,
+      officeId: work.officeId,
+      staffName: work.staffName,
+      workDescription: work.workDescription,
+      status: newStatus,
+      date: work.date,
+      time: work.time,
+    );
+  }
+
+  void _showWorkDialog(BuildContext context, String officeId, {WorkUpdateModel? existingWork}) {
+    if (existingWork != null) {
+      _workDescController.text = existingWork.workDescription;
+    } else {
+      _workDescController.clear();
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.peacockDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(existingWork == null ? "Plan Today's Task" : "Edit Task", 
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomTextField(
+              controller: _workDescController,
+              hint: "Describe your work...",
+              icon: Icons.edit_note,
+              forAuth: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCEL", style: TextStyle(color: Colors.white60))),
+          if (existingWork != null)
+             TextButton(
+              onPressed: () async {
+                await context.read<WorkViewModel>().deleteWork(existingWork.id);
+                Navigator.pop(context);
+              },
+              child: const Text("DELETE", style: TextStyle(color: Colors.redAccent)),
+            ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.peacockDark),
+            onPressed: () async {
+              if (_workDescController.text.trim().isEmpty) return;
+              await context.read<WorkViewModel>().submitWorkUpdate(
+                id: existingWork?.id ?? '',
+                officeId: officeId,
+                staffName: _username,
+                workDescription: _workDescController.text.trim(),
+                status: existingWork?.status ?? 'Program',
+                date: existingWork?.date,
+                time: existingWork?.time,
+              );
+              _workDescController.clear();
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: Text(existingWork == null ? "ADD" : "UPDATE"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final attendanceVM = context.watch<AttendanceViewModel>();
+    final workVM = context.watch<WorkViewModel>();
+    final user = context.watch<AuthViewModel>().userModel;
 
     return AppScaffold(
-      title: 'Mark Attendance',
+      title: user?.companyName ?? 'Attendance Hub',
       body: StreamBuilder<AttendanceModel?>(
         stream: attendanceVM.watchTodayStatus(),
         builder: (context, snapshot) {
@@ -54,34 +139,46 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
           bool hasPunchedIn = attendance != null;
           bool hasPunchedOut = attendance?.punchOutTime.isNotEmpty ?? false;
 
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildStatusIcon(hasPunchedIn, hasPunchedOut),
-                  const SizedBox(height: 30),
-                  Text(
-                    "Hello, $_username",
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              children: [
+                _buildAttendanceCard(attendanceVM, attendance, hasPunchedIn, hasPunchedOut),
+                const SizedBox(height: 30),
+                if (hasPunchedIn && user != null) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Work Progression", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      if (!hasPunchedOut)
+                        IconButton(
+                          onPressed: () => _showWorkDialog(context, user.officeId),
+                          icon: const Icon(Icons.add_circle, color: Colors.white, size: 30),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Today: ${attendanceVM.currentDate}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 40),
-                  
-                  if (hasPunchedIn) ...[
-                    _timeLabel("Punch In", attendance!.punchInTime),
-                    if (hasPunchedOut) _timeLabel("Punch Out", attendance.punchOutTime),
-                    const SizedBox(height: 30),
-                  ],
+                  const SizedBox(height: 15),
+                  StreamBuilder<List<WorkUpdateModel>>(
+                    stream: workVM.watchMyTodaysWork(attendanceVM.currentDate),
+                    builder: (context, workSnapshot) {
+                      final works = workSnapshot.data ?? [];
+                      if (works.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(30), child: Text("No tasks planned. Tap '+' to start.", style: TextStyle(color: Colors.white60))));
+                      
+                      final program = works.where((w) => w.status == 'Program').toList();
+                      final progression = works.where((w) => w.status == 'Progression').toList();
+                      final completed = works.where((w) => w.status == 'Completed').toList();
 
-                  _buildActionButton(context, attendanceVM, hasPunchedIn, hasPunchedOut),
-                ],
-              ),
+                      return Column(
+                        children: [
+                          if (program.isNotEmpty) _buildListSection("Today's Program", program, Colors.blue, hasPunchedOut),
+                          if (progression.isNotEmpty) _buildListSection("In Progression", progression, Colors.orange, hasPunchedOut),
+                          if (completed.isNotEmpty) _buildListSection("Completed", completed, Colors.greenAccent, hasPunchedOut),
+                        ],
+                      );
+                    },
+                  ),
+                ]
+              ],
             ),
           );
         },
@@ -89,75 +186,95 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
     );
   }
 
-  Widget _buildStatusIcon(bool hasPunchedIn, bool hasPunchedOut) {
-    IconData icon = Icons.fingerprint;
-    Color color = Colors.white;
-
-    if (hasPunchedOut) {
-      icon = Icons.check_circle;
-      color = Colors.greenAccent;
-    } else if (hasPunchedIn) {
-      icon = Icons.timer;
-      color = Colors.orangeAccent;
-    }
-
-    return Icon(icon, size: 100, color: color);
+  Widget _buildListSection(String title, List<WorkUpdateModel> tasks, Color color, bool isDayEnded) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Text(title.toUpperCase(), style: TextStyle(color: color.withOpacity(0.8), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        ),
+        ...tasks.map((task) => Card(
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: ListTile(
+            onTap: isDayEnded ? null : () => _showWorkDialog(context, task.officeId, existingWork: task),
+            title: Text(task.workDescription, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text("Updated at ${task.time}", style: const TextStyle(fontSize: 10)),
+            trailing: isDayEnded ? null : _buildActionIcon(task),
+          ),
+        )),
+        const SizedBox(height: 10),
+      ],
+    );
   }
 
-  Widget _timeLabel(String label, String time) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Text(
-        "$label: $time",
-        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+  Widget _buildActionIcon(WorkUpdateModel task) {
+    if (task.status == 'Program') {
+      return IconButton(icon: const Icon(Icons.play_circle_fill, color: Colors.orange), onPressed: () => _updateStatus(task, 'Progression'));
+    } else if (task.status == 'Progression') {
+      return IconButton(icon: const Icon(Icons.check_circle, color: Colors.green), onPressed: () => _updateStatus(task, 'Completed'));
+    }
+    return const Icon(Icons.verified, color: Colors.green, size: 20);
+  }
+
+  Widget _buildAttendanceCard(AttendanceViewModel vm, AttendanceModel? attendance, bool hasPunchedIn, bool hasPunchedOut) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            hasPunchedOut ? Icons.verified : (hasPunchedIn ? Icons.location_on : Icons.fingerprint),
+            size: 60, 
+            color: hasPunchedOut ? Colors.greenAccent : (hasPunchedIn ? Colors.orangeAccent : Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Text(hasPunchedOut ? "Work Day Ended" : (hasPunchedIn ? "Active Shift" : "Ready to Start?"), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          if (hasPunchedIn) ...[
+            const SizedBox(height: 10),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _infoBadge("IN: ${attendance!.punchInTime}"),
+              if (hasPunchedOut) ...[const SizedBox(width: 8), _infoBadge("OUT: ${attendance.punchOutTime}")],
+            ]),
+            const SizedBox(height: 10),
+            Text(hasPunchedOut ? attendance.punchOutLocation : attendance.punchInLocation, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+          ],
+          const SizedBox(height: 20),
+          if (vm.isLoading)
+             const CircularProgressIndicator(color: Colors.white)
+          else if (!hasPunchedOut)
+            CustomButton(
+              title: hasPunchedIn ? 'PUNCH OUT' : 'PUNCH IN NOW',
+              onTap: () async {
+                try {
+                   if (hasPunchedIn) {
+                      await vm.punchOut();
+                   } else {
+                      await vm.punchIn();
+                   }
+                } catch (e) {
+                   if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Colors.redAccent, content: Text(e.toString().replaceAll('Exception:', ''))));
+                   }
+                }
+              },
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildActionButton(BuildContext context, AttendanceViewModel vm, bool hasPunchedIn, bool hasPunchedOut) {
-    if (vm.isLoading) return const CircularProgressIndicator(color: Colors.white);
-
-    if (hasPunchedOut) {
-      return const Text(
-        "Attendance Completed for Today",
-        style: TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.bold),
-      );
-    }
-
-    if (hasPunchedIn) {
-      return CustomButton(
-        title: 'PUNCH OUT NOW',
-        onTap: () async {
-          await vm.punchOut();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Punched Out Successfully!')),
-            );
-          }
-        },
-      );
-    }
-
-    return CustomButton(
-      title: 'PUNCH IN NOW',
-      onTap: () async {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user == null || !_isInitialized) return;
-
-        await vm.addAttendance(
-          staffId: user.email!.toLowerCase(),
-          staffName: _username,
-          date: vm.currentDate,
-          status: 'Present',
-          punchInTime: vm.currentTime,
-        );
-        
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Punched In Successfully!')),
-          );
-        }
-      },
+  Widget _infoBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 }

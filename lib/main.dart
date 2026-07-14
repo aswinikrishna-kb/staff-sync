@@ -10,6 +10,8 @@ import 'package:staff_sync/viewmodel/invoice_viewmodel.dart';
 import 'package:staff_sync/viewmodel/leave_viewmodel.dart';
 import 'package:staff_sync/viewmodel/staff_viewmodel.dart';
 import 'package:staff_sync/viewmodel/salary_viewmodel.dart';
+import 'package:staff_sync/viewmodel/work_viewmodel.dart';
+import 'package:staff_sync/viewmodel/theme_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,17 +30,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => StaffViewModel()),
         ChangeNotifierProvider(create: (_) => AttendanceViewModel()),
         ChangeNotifierProvider(create: (_) => LeaveViewModel()),
         ChangeNotifierProvider(create: (_) => SalaryViewModel()),
         ChangeNotifierProvider(create: (_) => InvoiceViewModel()),
+        ChangeNotifierProvider(create: (_) => WorkViewModel()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
-        home: const SplashScreen(),
+      child: Consumer<ThemeViewModel>(
+        builder: (context, themeVM, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.theme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeVM.themeMode,
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

@@ -5,6 +5,8 @@ class AttendanceModel {
   final String status;
   final String punchInTime;
   final String punchOutTime;
+  final String punchInLocation; // New field for location
+  final String punchOutLocation; // New field for location
 
   AttendanceModel({
     required this.staffId,
@@ -13,6 +15,8 @@ class AttendanceModel {
     required this.status,
     required this.punchInTime,
     this.punchOutTime = '',
+    this.punchInLocation = '',
+    this.punchOutLocation = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class AttendanceModel {
       "status": status,
       "punchInTime": punchInTime,
       "punchOutTime": punchOutTime,
+      "punchInLocation": punchInLocation,
+      "punchOutLocation": punchOutLocation,
     };
   }
 
@@ -34,6 +40,8 @@ class AttendanceModel {
       status: map["status"] ?? '',
       punchInTime: map["punchInTime"] ?? '',
       punchOutTime: map["punchOutTime"] ?? '',
+      punchInLocation: map["punchInLocation"] ?? '',
+      punchOutLocation: map["punchOutLocation"] ?? '',
     );
   }
 }

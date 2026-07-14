@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:staff_sync/core/constants/app_colors.dart';
-import 'package:staff_sync/core/widgets/app_list_card.dart';
 import 'package:staff_sync/core/widgets/app_scaffold.dart';
 import 'package:staff_sync/model/attendance_model.dart';
 import 'package:staff_sync/viewmodel/attendance_viewmodel.dart';
@@ -62,10 +61,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardColor,
+              color: Colors.white.withOpacity(0.9),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.peacockDark.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                 )
               ],
@@ -78,7 +77,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                   onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
                   decoration: InputDecoration(
                     hintText: "Search staff name...",
-                    prefixIcon: const Icon(Icons.search, color: AppColors.peacock),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.peacockDark),
                     filled: true,
                     fillColor: Colors.grey[50],
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -97,11 +96,11 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                           decoration: BoxDecoration(
                             color: Colors.grey[50],
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
+                            border: Border.all(color: Colors.grey[300]!),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_month, color: AppColors.peacock, size: 20),
+                              const Icon(Icons.calendar_month, color: AppColors.peacockDark, size: 20),
                               const SizedBox(width: 12),
                               Text(
                                 _selectedDate ?? "Filter by Date",
@@ -136,12 +135,12 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               stream: attendanceVM.watchAttendance(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
                 }
 
                 var list = snapshot.data ?? [];
 
-                // Apply Filters locally
+                // Apply Filters
                 if (_selectedDate != null) {
                   list = list.where((a) => a.date == _selectedDate).toList();
                 }
@@ -150,39 +149,71 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 }
 
                 if (list.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          _selectedDate == null ? 'No Attendance Found' : 'No records found for your search',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                        ),
-                      ],
-                    ),
+                  return const Center(
+                    child: Text('No attendance records found.', style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic)),
                   );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+                  padding: const EdgeInsets.all(12),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     final attendance = list[index];
-                    return AppListCard(
-                      title: attendance.staffName,
-                      icon: Icons.fingerprint,
-                      subtitles: [
-                        '📅 Date: ${attendance.date}',
-                        '✅ Status: ${attendance.status}',
-                        if (attendance.punchInTime.isNotEmpty) '🕒 Punch In: ${attendance.punchInTime}',
-                        if (attendance.punchOutTime.isNotEmpty) '🕒 Punch Out: ${attendance.punchOutTime}',
-                      ],
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(attendance.staffName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.peacockDark)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                  child: Text(attendance.status, style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+                            _buildInfoRow(Icons.calendar_today, "Date", attendance.date),
+                            _buildInfoRow(Icons.login, "Punch In", "${attendance.punchInTime} at ${attendance.punchInLocation}"),
+                            if (attendance.punchOutTime.isNotEmpty)
+                              _buildInfoRow(Icons.logout, "Punch Out", "${attendance.punchOutTime} at ${attendance.punchOutLocation}"),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black87, fontSize: 12),
+                children: [
+                  TextSpan(text: "$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: value),
+                ],
+              ),
             ),
           ),
         ],

@@ -18,7 +18,7 @@ class MyAttendanceScreen extends StatelessWidget {
         stream: attendanceVM.watchMyAttendance(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
 
           final attendanceList = snapshot.data ?? [];
@@ -37,12 +37,17 @@ class MyAttendanceScreen extends StatelessWidget {
               final attendance = attendanceList[index];
 
               return AppListCard(
-                title: attendance.staffName,
+                title: "Date: ${attendance.date}",
                 icon: Icons.calendar_today,
                 subtitles: [
-                  'Date : ${attendance.date}',
                   'Status : ${attendance.status}',
                   'Punch In : ${attendance.punchInTime}',
+                  if (attendance.punchInLocation.isNotEmpty) 
+                    'Location: ${attendance.punchInLocation}',
+                  if (attendance.punchOutTime.isNotEmpty)
+                    'Punch Out: ${attendance.punchOutTime}',
+                  if (attendance.punchOutLocation.isNotEmpty)
+                    'Out Loc: ${attendance.punchOutLocation}',
                 ],
               );
             },

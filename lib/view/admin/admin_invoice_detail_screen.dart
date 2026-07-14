@@ -92,6 +92,7 @@ class _AdminInvoiceDetailScreenState extends State<AdminInvoiceDetailScreen> {
           children: [
             _buildSectionCard("Client Information", [
               _infoRow("Name", widget.invoice.clientName),
+              _infoRow("Office", widget.invoice.clientOfficeName), // Added Office Name
               _infoRow("Email", widget.invoice.clientEmail),
               _infoRow("Status", widget.invoice.status),
             ]),
@@ -110,7 +111,6 @@ class _AdminInvoiceDetailScreenState extends State<AdminInvoiceDetailScreen> {
             ]),
             const SizedBox(height: 15),
             
-            // ADMIN FEEDBACK / NOTE SECTION
             if (widget.invoice.status == 'Pending') ...[
               const Text("Enter Admin Feedback", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
@@ -134,7 +134,7 @@ class _AdminInvoiceDetailScreenState extends State<AdminInvoiceDetailScreen> {
               ),
             ] else ...[
               if (widget.invoice.adminComment != null && widget.invoice.adminComment!.isNotEmpty)
-                _buildSectionCard("Previous Admin Note", [
+                _buildSectionCard("Admin Note", [
                   Text(widget.invoice.adminComment!, style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
                 ]),
               const SizedBox(height: 20),
